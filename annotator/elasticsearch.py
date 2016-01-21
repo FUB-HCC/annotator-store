@@ -90,7 +90,12 @@ class _Model(dict):
         log.info("Creating index '%s'.", cls.es.index)
         conn = cls.es.conn
         try:
-            conn.indices.create(cls.es.index)
+            if conn.indices.exists(cls.es.index):
+                log.info("Index '%s' already exists.", cls.es.index)
+            elif conn.indices.exists_alias(cls.es.index):
+                log.info("Alias '%s' already exists.", cls.es.index)
+            else:
+                conn.indices.create(cls.es.index)
         except elasticsearch.exceptions.RequestError as e:
             # Reraise anything that isn't just a notification that the index
             # already exists (either as index or as an alias).
